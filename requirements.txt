@@ -1,0 +1,5 @@
+cmake
+wheel
+face_recognition
+flask
+dlib

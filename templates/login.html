@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+
+ <div  class="mainlogin" style="position:relative;width: 400px;left:0px;background:white;height: 500px;box-shadow: black 12px 19px 19px;border-radius: 40px">
+<br>
+<br>
+<center><b style="font-size: 25px;"><h3 style="color : black;width:150px;border-radius: 40px" >Login</h3></b><br></center>
+
+
+<form action="/login" method="post">
+  <div  class="form-group">
+    <input
+      style="border-radius:50px"
+      autocomplete="off"
+      autofocus
+      class="form-control"
+      name="username"
+      placeholder=" 🗒 Username" 
+      type="text"
+      id ="hoverin"
+
+    />
+  </div>
+
+
+  {% if (messager == 1 ) %}
+  <center>
+            <header class="inv" style="color:white;box-shadow: 5px 7px 15px black;border: 2px solid red;border-radius: 50px;background-color: red;width:200px;padding:50px">
+
+                 &#9997  Enter username.
+
+            </header>
+</center>
+
+ {% endif %}
+ <br>
+  
+  <div class="form-group">
+    <input
+    style="border-radius:50px"
+      class="form-control"
+      name="password"
+      placeholder="&#128273 Password"
+      type="password"
+      id ="hoverin"
+    />
+  </div>
+
+  {% if (messager == 2 ) %}
+  <center>
+            <header  style="color:white;box-shadow: 5px 7px 15px black;border: 2px solid red;border-radius: 50px;background-color: red;width:200px">
+
+                  &#9997 Enter password.
+
+            </header>
+            </center>
+ {% endif %}
+ <br>
+Or<br><br>
+    <button class="btn btn-success" id ="hoverinbtn" style="border-radius:50px;width:200px;background-color: black !important;"><a href="/facereg">Face Password</a></button><br>
+    <br>
+  <button class="btn btn-success" type="submit"  id ="hoverinbtn" style="border-radius:50px;width:350px;height:50px;background-color: #9C19E0 !important;">LOG IN</button>
+</form>
+<br>
+<br>
+
+{% if (messager == 3 ) %}
+  <center>
+            <header  style="color:white;box-shadow: 5px 7px 15px black;border: 2px solid red;border-radius: 50px;background-color: red;width:300px ">
+
+                   &#10060 Invalid password or username.
+
+            </header>
+              </center>
+
+            </div>
+
+
+
+ {% endif %}
+
+{% endblock %}
