@@ -16,7 +16,7 @@ For running:
 1. Firstly clone the repo.
 2. Install the required libraries mentioned in 'requirements' in python.
 3. Then run python application.py.
-4. Go to the browser and type localhost:5000 to access the site
+4. Go to the browser and type localhost:5000 to access the site.
 
 
 
