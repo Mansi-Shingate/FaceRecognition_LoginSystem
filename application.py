@@ -15,14 +15,20 @@ from PIL import Image
 from base64 import b64encode, b64decode
 import re
 from helpers import apology, login_required
-
+from flask import Flask, render_template, request, url_for, redirect, session
+import pymongo
+import bcrypt
 # Configure application
 app = Flask(__name__)
 # configure flask-socketio
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-users=[]
+
+
+client = pymongo.MongoClient("mongodb+srv://admin-mansi:facerecog#321@cluster0.gjq2pda.mongodb.net/?retryWrites=true&w=majority")
+db = client.get_database('login')
+users = db.users
 
 # Ensure responses aren't cached
 @app.after_request
@@ -42,7 +48,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure CS50 Library to use SQLite database
 @app.route("/")
 @login_required
 def home():
@@ -73,25 +78,25 @@ def login():
         if not input_username:
             return render_template("login.html", messager=1)
 
-
-
         # Ensure password was submitted
         elif not input_password:
             return render_template("login.html", messager=2)
 
         # Query database for username
-        for user in users:
-            if input_username == user["name"]:
-                username = user
+        name_found = users.find_one({"name": input_username})
+        if name_found:
+            name_val = name_found['name']
+            passwordcheck = name_found['password']
 
-        # Ensure username exists and password is correct
-        if len(str(username["name"])) != 1 or not check_password_hash(username["hash"], input_password):
-            return render_template("login.html", messager=3)
+            if bcrypt.checkpw(input_password.encode('utf-8'), passwordcheck):
+                # Remember which user has logged in
+                session["user_id"] = name_val
+                # Redirect user to home page
+                return redirect("/")
 
-        # Remember which user has logged in
-        session["user_id"] = username["name"]
-        # Redirect user to home page
-        return redirect("/")
+            else:
+                return render_template("login.html", messager=3)
+
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -140,20 +145,19 @@ def register():
             return render_template("register.html", messager=3)
 
         # Query database for username
+        user_found = users.find_one({"name": input_username})
+        if user_found:
+            return render_template("register.html", messager=5)
 
-        for user in users:
-            if user["name"] == input_username:
-                if len(user["name"]) == 1:
-                    return render_template("register.html", messager=5)
         # Ensure username is not already taken
 
         # Query database to insert new user
         else:
+            hashed = bcrypt.hashpw(input_password.encode('utf-8'), bcrypt.gensalt())
+            user_input = {'name': input_username,'password': hashed}
+            users.insert_one(user_input)
 
-            new_user = {"name": input_username,
-                        "password": generate_password_hash(input_password, method="pbkdf2:sha256",
-                                                           salt_length=8)}
-            users.append(new_user)
+            new_user = users.find_one({'name': input_username})
             if new_user:
                 # Keep newly registered user logged in
                 session["user_id"] = new_user["name"]
@@ -180,7 +184,7 @@ def facereg():
 
 
         id_ = username
-        compressed_data = zlib.compress(encoded_image, 9)
+        compressed_data = zlib.compress(encoded_image, 5)
 
         uncompressed_data = zlib.decompress(compressed_data)
 
@@ -214,10 +218,8 @@ def facereg():
         print(results)
 
         if results[0]:
-
-            for user in users:
-                if user["name"] == id_:
-                    session["user_id"] = user["name"]
+            user_found = users.find_one({"name": id_})
+            session["user_id"] = user_found["name"]
             return redirect("/success")
         else:
             return render_template("camera.html", message=3)
@@ -232,13 +234,12 @@ def facesetup():
     if request.method == "POST":
 
         encoded_image = (request.form.get("pic") + "==").encode('utf-8')
-
-        for user in users:
-            if user["name"] == session["user_id"]:
-                id_ = user["name"]
+        user_name=session["user_id"]
+        user_found = users.find_one({"name":user_name })
+        id_ = user_found["name"]
 
         # id_ = db.execute("SELECT id FROM users WHERE id = :user_id", user_id=session["user_id"])[0]["id"]
-        compressed_data = zlib.compress(encoded_image, 9)
+        compressed_data = zlib.compress(encoded_image, 5)
 
         uncompressed_data = zlib.decompress(compressed_data)
         decoded_data = b64decode(uncompressed_data)
